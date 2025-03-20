@@ -1,11 +1,19 @@
 const dateElement = document.getElementById('date');
 const timeElement = document.getElementById('time');
 const monthElement = document.getElementById('month');
-const weekElement = document.getElementById('week-days');
 const calender = document.getElementById('calendar');
 const backBtn = document.getElementById('back-btn');
 const nextBtn = document.getElementById('next-btn');
+const allMoods = document.querySelectorAll('.mood-item');
 let monthNo = 0;
+
+
+function findMoodItem(year,month,day){
+    const dateKey = `${year}-${(month+1).toString().padStart(2,'0')}-${day.toString().padStart(2,'0')}`;
+
+    return localStorage.getItem(dateKey);
+
+}
 
 
 // to update date and time
@@ -38,8 +46,6 @@ updateTime();
 const weekDays = ['Sunday','Monday','Tuesday','Wednesday', 'Thursday','Friday','Saturday']; 
 
 
-
-
 function renderCalendar(){
     const now = new Date();
 
@@ -67,20 +73,33 @@ function renderCalendar(){
         const dayItem = document.createElement('div');
         dayItem.classList.add('day');
     
+        // matlab ye days previous month ke hain
         if(i <= paddingDays){
             dayItem.classList.add('padding')
         }
         else{
-            dayItem.innerText = i - paddingDays;
-            if(((i - paddingDays) == day) && monthNo == 0 ){
+                const currentDay = i - paddingDays;
+                dayItem.innerText = currentDay;
+                const moodItem = findMoodItem(year,month,currentDay);
+
+                if(moodItem){
+
+                    const moodElement = document.getElementById(moodItem)
+                    dayItem.innerText = currentDay + moodElement.innerText.split(' ')[0];
+                    dayItem.setAttribute('title',`${moodElement.innerText.split(' ')[1]}`);
+                }
+
+                
+                if(((i - paddingDays) == day) && monthNo == 0 ){
                 dayItem.id = 'currentDay'
-            }
+                }
         }
         calender.appendChild(dayItem);
     }  
 }
 
 renderCalendar();
+
 
 nextBtn.addEventListener('click',()=>{
     monthNo++;
@@ -90,4 +109,20 @@ nextBtn.addEventListener('click',()=>{
 backBtn.addEventListener('click',()=>{
     monthNo--;
     renderCalendar();
+})
+
+// adding click event on all moods
+
+allMoods.forEach((item)=>{
+    item.addEventListener('click',()=>{
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = now.getMonth();
+        const day = now.getDate();
+
+        const dateKey = `${year}-${(month+1).toString().padStart(2,'0')}-${day.toString().padStart(2,'0')}`;
+        localStorage.setItem(dateKey,item.id);
+
+        renderCalendar()
+    })
 })
